@@ -7,6 +7,11 @@ use Laracord\Laracord;
 
 class Bot extends Laracord
 {
+    public function beforeBoot(): void
+    {
+        parent::beforeBoot(); // TODO: Call the API Service to get Penguin data
+    }
+
     /**
      * The HTTP routes.
      */
