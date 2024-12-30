@@ -1,0 +1,5 @@
+/vendor
+/builds
+/.laracord
+*.sqlite
+.env
