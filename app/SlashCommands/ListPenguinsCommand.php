@@ -6,6 +6,7 @@ use Discord\Parts\Interactions\Interaction;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Laracord\Commands\SlashCommand;
 
 class ListPenguinsCommand extends SlashCommand
@@ -16,6 +17,8 @@ class ListPenguinsCommand extends SlashCommand
      * @var string
      */
     protected $name = 'penguins';
+
+    protected $guild = '1323298173489250304';
 
     /**
      * The command description.
@@ -60,30 +63,23 @@ class ListPenguinsCommand extends SlashCommand
      */
     public function handle($interaction)
     {
-        $client = new Client();
-        $options = [
-            'multipart' => [
-                [
-                    'name' => 'data',
-                    'contents' => '{"id":"661f08a5d6fb81b89e0391cb"}'
-                ]
-            ]];
-        $request = new Request('POST', 'https://my.wildlifecomputers.com/data/map/data/');
-        $res = $client->sendAsync($request, $options)->wait();
-        $data = json_decode($res->getBody()->getContents(), true);
+        $data = json_decode(Storage::get('location_data.json'), true);
 
         $penguins = [];
+        $content = '';
         foreach($data['deployments'] as $penguin) {
-            array_push($penguins, $penguin['title']);
+            $gender = null;
+            str_contains($penguin['title'], 'Male') ? $gender = ":male_sign:" : $gender = ":female_sign:";
+            $content .= '* ' . $penguin['friendly_name'] . ' ' . $gender . "\n";
+            array_push($penguins, $penguin);
         }
-
 
         $interaction->respondWithMessage(
             $this
               ->message()
               ->title('Available penguins:')
-              ->content(implode(',', $penguins))
-              ->button('👋', route: 'wave')
+              ->content($content)
+              //->button('👋', route: 'wave')
               ->build()
         );
     }

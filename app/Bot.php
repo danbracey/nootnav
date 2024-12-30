@@ -2,7 +2,12 @@
 
 namespace App;
 
+use App\Services\UpdatePenguinData;
+use Faker\Guesser\Name;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Laracord\Laracord;
 
 class Bot extends Laracord
@@ -10,6 +15,45 @@ class Bot extends Laracord
     public function beforeBoot(): void
     {
         parent::beforeBoot(); // TODO: Call the API Service to get Penguin data
+        //TODO: Remove below once service can be called from here
+        $client = new Client();
+        $options = [
+            'multipart' => [
+                [
+                    'name' => 'data',
+                    'contents' => '{"id":"661f08a5d6fb81b89e0391cb"}'
+                ]
+            ]];
+        $request = new Request('POST', 'https://my.wildlifecomputers.com/data/map/data/');
+        $res = $client->sendAsync($request, $options)->wait();
+        $data = $res->getBody()->getContents();
+
+        //Insert a new 'friendly name' for each penguin, so we're not dealing with Mig202x Gender number
+        $data = json_decode($data, true);
+        // Check if 'deployment' exists and iterate through it
+
+        if (isset($data['deployments'])) {
+            foreach ($data['deployments'] as &$deployment) { // Use reference to modify the original array
+                $gender = null;
+
+                // Check if 'title' contains 'Male' or 'Female' and set the gender
+                if (str_contains($deployment['title'], 'Male')) {
+                    $gender = 'male';
+                } else {
+                    $gender = 'female';
+                }
+
+                // Assign a fake name based on the gender
+                $deployment['friendly_name'] = fake()->firstName($gender);
+            }
+        } else {
+            die("Unable to retrieve Penguin API Data, as such, this Bot cannot run");
+        }
+
+        $updatedData = json_encode($data);
+
+        // Save the updated data in storage
+        Storage::put('location_data.json', $updatedData);
     }
 
     /**
