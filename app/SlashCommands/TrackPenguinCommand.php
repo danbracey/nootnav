@@ -144,8 +144,10 @@ class TrackPenguinCommand extends SlashCommand
         $interaction->respondWithMessage(
             $this
               ->message()
-              ->title('Tracking penguin: ' . $this->value('name', 'all'))
-              ->content('Tracking ' . count($data['deployments']) . ' penguins:')
+              ->body('<a:nootnoot:1323756516855124048> Tracking ' . count($data['deployments']) . ' penguins: ')
+//              ->title('Tracking penguin: ' . $this->value('name', 'all'))
+//              ->content("Hello")
+//              ->footerText("Use /track [name] to track a singular penguin!")
               ->filePath('./storage/track.png') //Maps API
               ->build()
         );
