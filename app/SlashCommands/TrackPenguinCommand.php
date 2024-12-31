@@ -3,10 +3,12 @@
 namespace App\SlashCommands;
 
 use Discord\Parts\Interactions\Interaction;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Laracord\Commands\SlashCommand;
 use PhpOption\Option;
+use Discord\Parts\Embed\Embed;
 
 class TrackPenguinCommand extends SlashCommand
 {
@@ -92,29 +94,59 @@ class TrackPenguinCommand extends SlashCommand
         $data = json_decode(Storage::get('location_data.json'), true);
         foreach($data['deployments'] as $deployment) {
             //Start a new path for each penguin
-            $path_string .= '&path=';
+            $path_string .= '&path=color:0x000000FF|weight:1';
 
-            foreach($deployment['locations'] as $location) {
-                //Add each penguin's lat & long to the averages
-                array_push($averages_lat, $location['latitude']);
-                array_push($averages_long, $location['longitude']);
+            foreach($deployment['locations'] as $key => $location) {
+                if ( $key==0 || ($key+1)%18 == 0 ) //Attempt to reduce the number of path points, to every 5th point.
+                {
+                    //Add each penguin's lat & long to the averages
+                    array_push($averages_lat, $location['latitude']);
+                    array_push($averages_long, $location['longitude']);
+
+                    //Add each penguin's location to the path
+                    $path_string .= '|'. $location['latitude'] . ',' . $location['longitude'];
+                }
             }
         }
 
         $average_lat = array_sum($averages_lat) / count($averages_lat);
         $average_long = array_sum($averages_long) / count($averages_long);
 
+        $client = new Client();
+
+        try {
+            // Send a GET request to the Google Static Maps API
+            $response = $client->get('https://maps.googleapis.com/maps/api/staticmap?center='
+                . $average_lat . ',' . $average_long
+                . '&size=500x400&key='
+                . config('app.map_api_key') //API KEY
+                . '&zoom=5'
+                . $path_string);
+
+            // Get the image body from the response (raw image data)
+            $image_data = $response->getBody();
+
+            // Step 4: Save the image as a PNG file
+            Storage::put('track.png', $image_data);
+            //file_put_contents("storage/track.png", $image_data);
+            echo "Image saved successfully as google_map_image.png";
+
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            // Handle errors (e.g., invalid API key, network issues)
+            echo "Error fetching the image: " . $e->getMessage();
+            $interaction->respondWithMessage(
+                $this
+                    ->message('Unable to fetch tracking Map')
+                    ->build()
+            );
+        }
+
         $interaction->respondWithMessage(
             $this
               ->message()
               ->title('Tracking penguin: ' . $this->value('name', 'all'))
-              ->content('Hello world! Avg. Lat: ' . $average_lat . ' Avg Long: ' . $average_long)
-              ->imageUrl('https://maps.googleapis.com/maps/api/staticmap?center='
-                  . $average_lat . ',' . $average_long
-                  . '&size=500x400&key='
-                  . config('app.map_api_key') //API KEY
-                  . '&zoom=4'
-              ) //Maps API
+              ->content('Tracking ' . count($data['deployments']) . ' penguins:')
+              ->filePath('./storage/track.png') //Maps API
               ->build()
         );
     }

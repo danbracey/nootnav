@@ -39,14 +39,8 @@ class UpdatePenguinData extends Service
 
         if (isset($data['deployments'])) {
             foreach ($data['deployments'] as &$deployment) { // Use reference to modify the original array
-                $gender = null;
-
                 // Check if 'title' contains 'Male' or 'Female' and set the gender
-                if (str_contains($deployment['title'], 'Male')) {
-                    $gender = 'male';
-                } else {
-                    $gender = 'female';
-                }
+                $gender = str_contains($deployment['title'], 'Male') ? 'male' : 'female';
 
                 // Assign a fake name based on the gender
                 $deployment['friendly_name'] = fake()->firstName($gender);
