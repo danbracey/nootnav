@@ -70,4 +70,15 @@ return [
         App\Providers\BotServiceProvider::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Map API Key
+    |--------------------------------------------------------------------------
+    |
+    | The API maps key is loaded from the .env file, and must be a Google Static Maps API
+    |
+    */
+
+    'map_api_key' => env('GOOGLE_STATIC_MAPS_API_KEY', null),
+
 ];
