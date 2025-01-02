@@ -43,7 +43,7 @@ return [
     |
     */
 
-    'intents' => Intents::getDefaultIntents() | Intents::MESSAGE_CONTENT | Intents::GUILD_MEMBERS,
+    'intents' => Intents::getDefaultIntents(),
 
     /*
     |--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ return [
     */
 
     'options' => [
-        'loadAllMembers' => true,
+        'loadAllMembers' => false,
     ],
 
     /*
