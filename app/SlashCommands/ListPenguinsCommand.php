@@ -79,7 +79,6 @@ class ListPenguinsCommand extends SlashCommand
               ->message()
               ->title('Available penguins:')
               ->content($content)
-              //->button('👋', route: 'wave')
               ->build()
         );
     }
@@ -90,7 +89,7 @@ class ListPenguinsCommand extends SlashCommand
     public function interactions(): array
     {
         return [
-            'wave' => fn (Interaction $interaction) => $this->message('👋')->reply($interaction),
+            //
         ];
     }
 }

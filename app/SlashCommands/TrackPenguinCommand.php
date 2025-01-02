@@ -3,12 +3,11 @@
 namespace App\SlashCommands;
 
 use Discord\Parts\Interactions\Interaction;
+use Exception;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Session;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Storage;
 use Laracord\Commands\SlashCommand;
-use PhpOption\Option;
-use Discord\Parts\Embed\Embed;
 
 class TrackPenguinCommand extends SlashCommand
 {
@@ -32,12 +31,12 @@ class TrackPenguinCommand extends SlashCommand
      * @var array
      */
     protected $options = [
-        [
-            'name' => 'name',
-            'description' => 'Which penguin would you like to track?',
-            'type' => \Discord\Parts\Interactions\Command\Option::STRING,
-            'required' => false
-        ]
+//        [
+//            'name' => 'name',
+//            'description' => 'Which penguin would you like to track?',
+//            'type' => \Discord\Parts\Interactions\Command\Option::STRING,
+//            'required' => false
+//        ]
     ];
 
     /**
@@ -45,16 +44,16 @@ class TrackPenguinCommand extends SlashCommand
      */
     public function autocomplete(): array
     {
-        $data = json_decode(Storage::get('location_data.json'), true);
-
-        $penguins = [];
-        foreach($data['deployments'] as $penguin) {
-            array_push($penguins, $penguin['friendly_name']);
-        }
-
-        return [
-            'name' => $penguins,
-        ];
+//        $data = json_decode(Storage::get('location_data.json'), true);
+//
+//        $penguins = [];
+//        foreach($data['deployments'] as $penguin) {
+//            array_push($penguins, $penguin['friendly_name']);
+//        }
+//
+//        return [
+//            'name' => $penguins,
+//        ];
     }
 
     /**
@@ -81,8 +80,9 @@ class TrackPenguinCommand extends SlashCommand
     /**
      * Handle the slash command.
      *
-     * @param  \Discord\Parts\Interactions\Interaction  $interaction
+     * @param Interaction $interaction
      * @return mixed
+     * @throws Exception|GuzzleException
      */
     public function handle($interaction)
     {
@@ -138,22 +138,23 @@ class TrackPenguinCommand extends SlashCommand
         $client = new Client();
 
         try {
-            // Send a GET request to the Google Static Maps API
-            $response = $client->get('https://maps.googleapis.com/maps/api/staticmap?center='
-                . $average_lat . ',' . $average_long
-                . '&size=500x400&key='
-                . config('app.map_api_key') //API KEY
-                . '&zoom=5'
-                . $path_string);
+            if(! Storage::exists('track.png') || time() - Storage::lastModified('track.png') > 7200) {
+                // Send a GET request to the Google Static Maps API
+                $response = $client->get('https://maps.googleapis.com/maps/api/staticmap?center='
+                    . $average_lat . ',' . $average_long
+                    . '&size=500x400&key='
+                    . config('app.map_api_key') //API KEY
+                    . '&zoom=5'
+                    . $path_string);
 
-            // Get the image body from the response (raw image data)
-            $image_data = $response->getBody();
+                // Get the image body from the response (raw image data)
+                $image_data = $response->getBody();
 
-            // Step 4: Save the image as a PNG file
-            Storage::put('track.png', $image_data);
-            //file_put_contents("storage/track.png", $image_data);
-            echo "Image saved successfully as google_map_image.png";
+                // Step 4: Save the image as a PNG file
+                Storage::put('track.png', $image_data);
 
+                echo "Generated a new tracking map";
+            }
         } catch (\GuzzleHttp\Exception\RequestException $e) {
             // Handle errors (e.g., invalid API key, network issues)
             echo "Error fetching the image: " . $e->getMessage();
@@ -164,16 +165,17 @@ class TrackPenguinCommand extends SlashCommand
             );
         }
 
+        $null = null;
         $interaction->respondWithMessage(
             $this
               ->message()
-              ->body('<a:nootnoot:1323756516855124048> Tracking ' . count($data['deployments']) . ' penguins: ')
-              ->title('Map Key: ')
+              ->body('<a:nootnoot:1323756516855124048> Tracking ' . count($data['deployments']) . ' penguins total (displaying ' . $start_index + 1 . ' to ' . $end_index . ')')
+              ->title('<a:nootnoot:1323756516855124048> Map Key: ')
               ->content($content)
-              ->footerText("Use /track [name] to track a singular penguin!")
+              //->footerText("Use /track [name] to track a singular penguin!")
               ->filePath('./storage/track.png') //Maps API
-              ->button('<', route: 'back')
-              ->button('>', route: 'forward')
+              ->button('<', disabled: $page < 2, route: 'back')
+              ->button('>', disabled: count($data['deployments']) % $items_per_page !== 0, route: 'forward')
               ->build()
         );
     }

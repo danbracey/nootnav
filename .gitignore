@@ -3,4 +3,4 @@
 /.laracord
 *.sqlite
 .env
-/storage/location_data.json
+/storage/
