@@ -133,9 +133,7 @@ return [
     |
     */
 
-    'commands' => [
-        Laracord\Commands\HelpCommand::class,
-    ],
+    'commands' => [],
 
     /*
     |--------------------------------------------------------------------------
