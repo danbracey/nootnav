@@ -90,14 +90,37 @@ class TrackPenguinCommand extends SlashCommand
         $averages_lat = [];
         $averages_long = [];
         $path_string = '';  //Create a path for each penguin
+        $path_colors = [
+            '0x55ABEE' => ':blue_square:',
+            '0xC0684F' => ':brown_square:',
+            '0x77B058' => ':green_square:',
+            '0xF48F0B' => ':orange_square:',
+            '0xDC2D44' => ':red_square:'
+        ];
+
+        $path_keys = array_keys($path_colors);
+        $path_values = array_values($path_colors);
+        $items_per_page = 5;  // Items per page
+        $page = 1;            // Current page (for example, 1 for first, 2 for second, etc.)
+
+        // Calculate the starting index and ending index for the data
+        $start_index = ($page - 1) * $items_per_page;
+        $end_index = $start_index + $items_per_page;
+        $content = '';
 
         $data = json_decode(Storage::get('location_data.json'), true);
-        foreach($data['deployments'] as $deployment) {
-            //Start a new path for each penguin
-            $path_string .= '&path=color:0x000000FF|weight:1';
 
-            foreach($deployment['locations'] as $key => $location) {
-                if ( $key==0 || ($key+1)%18 == 0 ) //Attempt to reduce the number of path points, to every 5th point.
+        for ($i = $start_index; $i < $end_index; $i++) {
+            //Start a new path for each penguin
+            $path_string .= '&path=color:' . $path_keys[$i] . '|weight:2';
+            $penguin = $data['deployments'][$i];
+
+            $gender = null;
+            str_contains($penguin['title'], 'Male') ? $gender = ":male_sign:" : $gender = ":female_sign:";
+            $content .= $path_values[$i] . ' ' . $penguin['friendly_name'] . ' ' . $gender . "\n";
+
+            foreach($penguin['locations'] as $key => $location) {
+                if ( $key==0 || ($key+1)%3 == 0 ) //Due to chunking the results by every 5 penguins, we can increase the accuracy of data to one in every 3 path points.
                 {
                     //Add each penguin's lat & long to the averages
                     array_push($averages_lat, $location['latitude']);
@@ -145,10 +168,12 @@ class TrackPenguinCommand extends SlashCommand
             $this
               ->message()
               ->body('<a:nootnoot:1323756516855124048> Tracking ' . count($data['deployments']) . ' penguins: ')
-//              ->title('Tracking penguin: ' . $this->value('name', 'all'))
-//              ->content("Hello")
-//              ->footerText("Use /track [name] to track a singular penguin!")
+              ->title('Map Key: ')
+              ->content($content)
+              ->footerText("Use /track [name] to track a singular penguin!")
               ->filePath('./storage/track.png') //Maps API
+              ->button('<', route: 'back')
+              ->button('>', route: 'forward')
               ->build()
         );
     }
@@ -158,6 +183,16 @@ class TrackPenguinCommand extends SlashCommand
      */
     public function interactions(): array
     {
-        return [];
+        return [
+            'back' => fn (Interaction $interaction) =>
+            $this
+                ->message("You selected {$interaction->data->values[0]}.")
+                ->reply($interaction, ephemeral: true),
+
+            'forward' => fn (Interaction $interaction) =>
+            $this
+                ->message("You selected {$interaction->data->values[0]}.")
+                ->reply($interaction, ephemeral: true),
+        ];
     }
 }
