@@ -18,8 +18,6 @@ class ListPenguinsCommand extends SlashCommand
      */
     protected $name = 'penguins';
 
-    protected $guild = '1323298173489250304';
-
     /**
      * The command description.
      *
