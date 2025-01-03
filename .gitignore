@@ -4,3 +4,4 @@
 *.sqlite
 .env
 /storage/
+.idea/

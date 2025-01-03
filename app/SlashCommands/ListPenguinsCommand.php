@@ -2,10 +2,6 @@
 
 namespace App\SlashCommands;
 
-use Discord\Parts\Interactions\Interaction;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Laracord\Commands\SlashCommand;
 
