@@ -1,44 +1,46 @@
-<p align="center">
-    <img title="Laracord" height="100" src="https://raw.githubusercontent.com/laracord/laracord.com/main/public/images/logo-full-dark.png" alt="Laracord Logo" />
-</p>
 
-<p align="center">
-  <a href="https://github.com/laracord/framework/actions"><img src="https://img.shields.io/github/actions/workflow/status/laracord/framework/main.yml?branch=main&style=flat-square" alt="Build Status" /></a>
-  <a href="https://packagist.org/packages/laracord/framework"><img src="https://img.shields.io/packagist/dt/laracord/framework.svg?style=flat-square" alt="Total Downloads" /></a>
-  <a href="https://packagist.org/packages/laracord/framework"><img src="https://img.shields.io/packagist/v/laracord/framework.svg?label=framework&style=flat-square" alt="Latest Stable Version" /></a>
-  <a href="https://packagist.org/packages/laracord/framework"><img src="https://img.shields.io/packagist/l/laracord/framework.svg?style=flat-square" alt="License" /></a>
-</p>
+# NootNav
+![Nootnoot](https://cdn3.emoji.gg/emojis/Nootnoot.gif)
 
-Laracord is a [micro-framework](https://github.com/laracord/framework) providing a powerful starting point for your next [Discord](https://discord.com/developers/docs/intro) bot.
+This Discord Bot aims to increase awareness against the extinction of penguins via the tracking of their movements. The name 'NootNav' is reference to the 'Noot Noot' sound made by Pingu.
 
-Quickly build functional, elegant bots using [Laravel](https://laravel.com/) alongside [DiscordPHP](https://github.com/discord-php/DiscordPHP).
+Thanks to the people at [EcosystemSentinels](https://ecosystemsentinels.org/live-penguin-tracking/), Katie Holt and Eric Wagner for providing the data available for this project via [Wildlife Computers](https://wildlifecomputers.com/). This project will fetch data from their API every month, and will display tracking data on a map. Upon Bot startup, each penguin is given a unique friendly name, that stays with them until the data set is renewed. If you wish to change the names of the penguins, delete the storage/location_data.json file, and new names will be generated based on the gender of the penguin.
 
-![Screenshot](https://raw.githubusercontent.com/laracord/laracord.com/main/public/images/laracord-cli.png)
+## Commands
+| Command   | Description                                              |
+|-----------|----------------------------------------------------------|
+| /penguins | Lists the names of all the penguins                      |
+| /track    | Track a penguin! Do /penguins to list available penguins |
 
-## Features
 
-- ⚡️ Out of the box support for databases, caching, and many other Laravel features thanks to [Laravel Zero](https://laravel-zero.com/).
-- 🚀 Instantly generate working bot [commands](https://laracord.com/docs/commands) and [event listeners](https://laracord.com/docs/events) with 0 knowledge.
-- 🧑‍💻 Automatic handling of registering/updating/unregistering application [slash commands](https://laracord.com/docs/slash-commands).
-- 🚚 Easy to use [interaction routing](https://laracord.com/docs/interactions) for persistence on message buttons and actions.
-- 👷 Generate asynchronous [services/tasks](https://laracord.com/docs/services) that run parallel to the bot.
-- 🌎 Optional [HTTP Server](https://laracord.com/docs/http-server) with native Laravel routing and [Livewire support](https://laracord.com/docs/livewire).
-- 🔧 Fully configurable and extendable.
-- 💄 Beautiful console logging with timestamps.
-- 🔍️ Fully [documented](https://laracord.com) and maintained.
+## Installation
 
-## Documentation
+Requirements:
 
-For full documentation, visit [Laracord.com](https://laracord.com).
+- PHP >= 8.2
+- Composer
+  The following PHP extensions are also required:
 
-## Bug Reports
+- fileinfo
+- sodium (to build for production)
 
-If you discover a bug in Laracord, please [open an issue](https://github.com/laracord/framework/issues).
+Once the repository has been cloned, change directory into the repository. Run the following commands:
+```
+cp .env.example .env
+```
+Fill in the Discord token, and get a Google Maps API key from Google Cloud, with Static Maps API enabled. Fill this in as well, and then run:
 
-## Contributing
+```
+php laracord bot:boot --no-migrate
+```
+The --no-migrate flag is important as otherwise Laracord will throw errors as the database portion has been removed (The app uses flat files for storage, that only need to be updated once a month). The Laracord developers are aware of the issue.
 
-Contributing whether it be through PRs, reporting an issue, or suggesting an idea is encouraged and appreciated.
+## Initial Configuration
+In order to run the Bot, you will have to create an Application using the Discord Developer Portal and obtain a bot token. The Bot does NOT require any Intents to run.
 
-## License
+## Screenshots
+/penguins command:  
+![Tracking Page](https://i.imgur.com/dr8KMz0.png)  
 
-Laracord is provided under the [MIT License](LICENSE.md).
+/track command:  
+![Listing Penguins](https://i.imgur.com/tDRbxQC.png)
